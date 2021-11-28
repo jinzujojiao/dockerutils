@@ -4,38 +4,32 @@
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 
 import sys, getopt
-from registrycleaner import RegistryCleaner
+
+from dockerutils.exception import CmdError
+from dockerutils.registrycleaner.main import RegistryCleaner, CleanRegCmdParser
+
+SUB_CMDS = ['cleanreg', 'help']
 
 def main(argv):
-    host = 'localhost'
-    port = '5000'
-    repo = None
+    subcmd = argv[0]
+    if subcmd not in SUB_CMDS:
+        help()
+        exit(2)
+
     try:
-        opts, args = getopt.getopt(argv, "hH:p:r:", ["host=", "port=", "repo="])
-    except getopt.GetoptError:
-        help()
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
+        if 'cleanreg' == subcmd:
+            command = CleanRegCmdParser.parse(argv[1:])
+            command.execute()
+        elif 'help' == subcmd:
             help()
-            sys.exit()
-        elif opt in ("-H", "--host"):
-            host = arg
-        elif opt in ("-p", "--port"):
-            port = arg
-        elif opt in ("-r", "--repo"):
-            repo = arg
-
-    if repo is None:
-        help()
-        sys.exit(2)
-
-    cleaner = RegistryCleaner(host, port)
-    cleaner.clean_repo(repo)
+            exit()
+    except CmdError as err:
+        print(err.help)
+        exit(2)
 
 def help():
-    print('main.py [-H <registry host>] [-p <registry port>] -r <repository name>')
-    print('registry host default value is localhost, registry port default value is 5000')
+    print('main.py <subcmd> [<options>]')
+    print('Supported subcmd list: cleanreg, help')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
