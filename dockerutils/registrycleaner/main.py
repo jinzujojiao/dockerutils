@@ -52,7 +52,7 @@ class RegistryCleaner(Command):
         tags_resp = requests.get(tags_url)
         tags_err = tags_resp.raise_for_status()
         if tags_err is not None:
-            logging.error(f'Fail to get tags for repo {self.repo}: {tags_err}')
+            logging.error('Fail to get tags for repo %s: %s', self.repo, tags_err)
             return
 
         tags_json = tags_resp.json()
@@ -62,17 +62,17 @@ class RegistryCleaner(Command):
             return
 
         for tag in tags:
-            logging.info(f'Processing tag {tag}')
+            logging.info('Processing tag %s', tag)
             tag_mani_url = repo_url + '/manifests/' + tag
             tag_mani_resp = requests.get(tag_mani_url, headers={'Accept':'application/vnd.docker.distribution.manifest.v2+json'})
             tag_mani_err = tag_mani_resp.raise_for_status()
             if tag_mani_err is not None:
-                logging.warning(f'Fail to get manifest for tag {tag}: {tag_mani_err}')
+                logging.warning('Fail to get manifest for tag %s: %s', tag, tag_mani_err)
                 continue
             tag_digest = tag_mani_resp.headers['Docker-Content-Digest']
             digest_url = repo_url + '/manifests/' + tag_digest
             digest_del_resp = requests.delete(digest_url, headers={'Accept':'application/vnd.docker.distribution.manifest.v2+json'})
             digest_del_err = digest_del_resp.raise_for_status()
             if digest_del_err is not None:
-                logging.warning(f'Fail to delete digest for tag {tag}: {digest_del_err}')
+                logging.warning('Fail to delete digest for tag %s: %s', tag, digest_del_err)
                 continue
